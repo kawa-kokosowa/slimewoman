@@ -1,4 +1,4 @@
 LINK_ID: bathroom
 TITLE: bathroom
-EXITS: first_room
-This is your bathroom.
+EXITS: first_room,down_drain
+This is your bathroom. Your bathtub's drain seems to be glowing.
