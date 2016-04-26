@@ -20,7 +20,7 @@ class Room(object):
     @classmethod
     def from_string(cls, room_string):
         room_file_contents = room_string.split('\n')
-        link_id = cls.validate_and_clean("link_id", room_file_contents[0])
+        link_id = cls.validate_and_clean("link_id", room_file_contents[0]).lower()
         title = cls.validate_and_clean("title", room_file_contents[1])
         exits = cls.validate_and_clean("exits", room_file_contents[2]).split(",")
         description = '\n'.join(room_file_contents[3:]).strip()
@@ -47,9 +47,13 @@ class Adventure(object):
 
         return cls(rooms)
 
-    # FIXME: this devlish nonsense needs refactoring
+    # FIXME: refactor
     def play(self):
-        current_room = self.rooms["FIRST_ROOM"]
+        """The main loop and urwid demon magic from hell.
+
+        """
+
+        current_room = self.rooms["first_room"]
         
         # URWID STUFF
         def goto_room_or_exit(key):
@@ -59,8 +63,8 @@ class Adventure(object):
 
             if ask_text.edit_text == 'quit':
                 raise urwid.ExitMainLoop()
-            elif ask_text.edit_text in self.rooms:
-                current_room = self.rooms[ask_text.edit_text]
+            elif ask_text.edit_text.lower() in self.rooms:
+                current_room = self.rooms[ask_text.edit_text.lower()]
                 title_text.set_text(current_room.title.upper())
                 description_text.set_text(current_room.description)
                 exit_text.set_text("Exits: " + ', '.join(current_room.exits))
