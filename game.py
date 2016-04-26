@@ -64,7 +64,7 @@ class Adventure(object):
                 title_text.set_text(current_room.title.upper())
                 description_text.set_text(current_room.description)
                 exit_text.set_text("Exits: " + ', '.join(current_room.exits))
-                # FIXME: idk how to clear prompt...
+                ask_text.set_edit_text("")
 
         palette = [('ask', 'default,bold', 'default', 'bold'),]
         title_text = urwid.Text(current_room.title.upper())
