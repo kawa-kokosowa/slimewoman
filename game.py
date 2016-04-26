@@ -47,44 +47,43 @@ class Adventure(object):
 
         return cls(rooms)
 
+    # FIXME: this devlish nonsense needs refactoring
     def play(self):
-        # PLAY!
         current_room = self.rooms["FIRST_ROOM"]
         
         # URWID STUFF
-        def goto_room_or_exit(edit, new_edit_text):
+        def goto_room_or_exit(key):
 
-            if new_edit_text == 'quit':
+            if not key == 'enter':
+                return
+
+            if ask_text.edit_text == 'quit':
                 raise urwid.ExitMainLoop()
-            elif new_edit_text in self.rooms:
-                current_room = self.rooms[new_edit_text]
+            elif ask_text.edit_text in self.rooms:
+                current_room = self.rooms[ask_text.edit_text]
                 title_text.set_text(current_room.title.upper())
                 description_text.set_text(current_room.description)
                 exit_text.set_text("Exits: " + ', '.join(current_room.exits))
                 # FIXME: idk how to clear prompt...
 
-
-        palette = [('I say', 'default,bold', 'default', 'bold'),]
+        palette = [('ask', 'default,bold', 'default', 'bold'),]
         title_text = urwid.Text(current_room.title.upper())
         description_text = urwid.Text(current_room.description)
         exit_text = urwid.Text("Exits: " + ', '.join(current_room.exits))
-        ask_text = urwid.Edit(("I say", "Which exit? > "))
+        ask_text = urwid.Edit(("ask", "Which exit? > "))
 
         description_filler = urwid.Filler(description_text)
         title_filler = urwid.Filler(title_text, valign="top")
         exit_filler = urwid.Filler(exit_text, valign="bottom")
         ask_filler = urwid.Filler(ask_text, valign="bottom")
 
-        frame = urwid.Pile([title_filler,
-                            description_filler,
-                            exit_filler,
-                            ask_filler])
-
-        placeholder = urwid.SolidFill()
-
-
-        urwid.connect_signal(ask_text, 'change', goto_room_or_exit)
-        loop = urwid.MainLoop(frame, palette).run()
+        pile = urwid.Pile([title_filler,
+                           description_filler,
+                           exit_filler,
+                           ask_filler])
+        # could use this to color input when word match?
+        #urwid.connect_signal(ask_text, 'change', goto_room_or_exit)
+        loop = urwid.MainLoop(pile, palette, unhandled_input=goto_room_or_exit).run()
 
 
 adventure = Adventure.from_directory("rooms")
