@@ -1,4 +1,4 @@
-LINK_ID: FIRST_ROOM
+LINK_ID: first_room
 TITLE: Slime Shack
 EXITS: bathroom
 You're at home, oh boy. It's just one big room,

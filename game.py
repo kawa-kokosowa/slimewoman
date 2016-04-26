@@ -33,6 +33,7 @@ class Adventure(object):
 
     def __init__(self, rooms):
         self.rooms = rooms
+        self.current_room = self.rooms["first_room"]
 
     @classmethod
     def from_directory(cls, directory):
@@ -53,10 +54,22 @@ class Adventure(object):
 
         """
 
-        current_room = self.rooms["first_room"]
-        
         # URWID STUFF
         def goto_room_or_exit(key):
+
+            # autocomplete
+            if key == 'tab':
+                
+                for exit in self.current_room.exits:
+                    exit = exit.lower()
+                    edit_text_value = ask_text.edit_text.lower()
+
+                    # first check if is exact same to suggest next
+                    if exit == edit_text_value:
+                        continue
+                    elif exit.startswith(edit_text_value):
+                        ask_text.set_edit_text(exit)
+                        ask_text.set_edit_pos(len(ask_text.edit_text))
 
             if not key == 'enter':
                 return
@@ -64,16 +77,16 @@ class Adventure(object):
             if ask_text.edit_text == 'quit':
                 raise urwid.ExitMainLoop()
             elif ask_text.edit_text.lower() in self.rooms:
-                current_room = self.rooms[ask_text.edit_text.lower()]
-                title_text.set_text(current_room.title.upper())
-                description_text.set_text(current_room.description)
-                exit_text.set_text("Exits: " + ', '.join(current_room.exits))
+                self.current_room = self.rooms[ask_text.edit_text.lower()]
+                title_text.set_text(self.current_room.title.upper())
+                description_text.set_text(self.current_room.description)
+                exit_text.set_text("Exits: " + ', '.join(self.current_room.exits))
                 ask_text.set_edit_text("")
 
         palette = [('ask', 'default,bold', 'default', 'bold'),]
-        title_text = urwid.Text(current_room.title.upper())
-        description_text = urwid.Text(current_room.description)
-        exit_text = urwid.Text("Exits: " + ', '.join(current_room.exits))
+        title_text = urwid.Text(self.current_room.title.upper())
+        description_text = urwid.Text(self.current_room.description)
+        exit_text = urwid.Text("Exits: " + ', '.join(self.current_room.exits))
         ask_text = urwid.Edit(("ask", "Which exit? > "))
 
         description_filler = urwid.Filler(description_text)

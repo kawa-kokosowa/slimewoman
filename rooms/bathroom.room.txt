@@ -1,4 +1,4 @@
 LINK_ID: bathroom
 TITLE: bathroom
-EXITS: FIRST_ROOM
+EXITS: first_room
 This is your bathroom.
