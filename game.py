@@ -48,10 +48,16 @@ class Adventure(object):
 
         return cls(rooms)
 
+    def set_room_by_link_id(self, link_id):
+        self.current_room = self.rooms[link_id]
+
 
 class RoomUI(object):
+    OVERLAY_WIDTH_IN_PERCENT = 60
+    OVERLAY_HEIGHT_IN_PERCENT = 60
 
     def __init__(self, adventure):
+
         self.adventure = adventure
         self.main = None
 
@@ -72,6 +78,9 @@ class RoomUI(object):
             urwid.connect_signal(button, 'click', self.item_chosen, c)
             body.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
+        button = urwid.Button("QUIT")
+        urwid.connect_signal(button, 'click', self.exit_program)
+        body.append(urwid.AttrMap(button, None, focus_map='reversed'))
         return urwid.ListBox(urwid.SimpleFocusListWalker(body))
 
     @staticmethod
@@ -90,15 +99,17 @@ class RoomUI(object):
         # change the current room to choice
         # TODO: this should probably be a method of adventure,
         # such as getitem
-        self.adventure.current_room = self.adventure.rooms[choice]
+        self.adventure.set_room_by_link_id(choice)
         self.make_room()
 
     def run(self):
         listbox_menu = self.menu()
         self.main = urwid.Padding(listbox_menu, left=2, right=2)
+        overlay_width = ('relative', self.OVERLAY_WIDTH_IN_PERCENT)
+        overlay_height = ('relative', self.OVERLAY_HEIGHT_IN_PERCENT)
         top = urwid.Overlay(self.main, urwid.SolidFill(u'*'),
-                            align='center', width=('relative', 60),
-                            valign='middle', height=('relative', 60),
+                            align='center', width=overlay_width,
+                            valign='middle', height=overlay_height,
                             min_width=20, min_height=9)
         urwid.MainLoop(top, palette=[('reversed', 'standout', '')]).run()
 
