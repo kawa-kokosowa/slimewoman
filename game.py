@@ -48,60 +48,60 @@ class Adventure(object):
 
         return cls(rooms)
 
-    # FIXME: refactor
-    def play(self):
-        """The main loop and urwid demon magic from hell.
+
+class RoomUI(object):
+
+    def __init__(self, adventure):
+        self.adventure = adventure
+        self.main = None
+
+    def menu(self):
+        """Menu from current room.
 
         """
 
-        # URWID STUFF
-        def goto_room_or_exit(key):
+        title = self.adventure.current_room.title.upper()
+        description = self.adventure.current_room.description
+        body = [urwid.Text(title),
+                urwid.Divider(),
+                urwid.Text(description),
+                urwid.Divider()]
 
-            # autocomplete
-            if key == 'tab':
-                
-                for exit in self.current_room.exits:
-                    exit = exit.lower()
-                    edit_text_value = ask_text.edit_text.lower()
+        for c in self.adventure.current_room.exits:
+            button = urwid.Button(c)
+            urwid.connect_signal(button, 'click', self.item_chosen, c)
+            body.append(urwid.AttrMap(button, None, focus_map='reversed'))
 
-                    # first check if is exact same to suggest next
-                    if exit == edit_text_value:
-                        continue
-                    elif exit.startswith(edit_text_value):
-                        ask_text.set_edit_text(exit)
-                        ask_text.set_edit_pos(len(ask_text.edit_text))
+        return urwid.ListBox(urwid.SimpleFocusListWalker(body))
 
-            if not key == 'enter':
-                return
+    @staticmethod
+    def exit_program(button):
+        raise urwid.ExitMainLoop()
 
-            if ask_text.edit_text == 'quit':
-                raise urwid.ExitMainLoop()
-            elif ask_text.edit_text.lower() in self.rooms:
-                self.current_room = self.rooms[ask_text.edit_text.lower()]
-                title_text.set_text(self.current_room.title.upper())
-                description_text.set_text(self.current_room.description)
-                exit_text.set_text("Exits: " + ', '.join(self.current_room.exits))
-                ask_text.set_edit_text("")
+    def make_room(self):
+        listbox_menu = self.menu()
+        self.main.original_widget = listbox_menu
 
-        palette = [('ask', 'default,bold', 'default', 'bold'),]
-        title_text = urwid.Text(self.current_room.title.upper())
-        description_text = urwid.Text(self.current_room.description)
-        exit_text = urwid.Text("Exits: " + ', '.join(self.current_room.exits))
-        ask_text = urwid.Edit(("ask", "Which exit? > "))
+    def item_chosen(self, button, choice):
+        """Can use this to create menu again.
 
-        description_filler = urwid.Filler(description_text)
-        title_filler = urwid.Filler(title_text, valign="top")
-        exit_filler = urwid.Filler(exit_text, valign="bottom")
-        ask_filler = urwid.Filler(ask_text, valign="bottom")
+        """
 
-        pile = urwid.Pile([title_filler,
-                           description_filler,
-                           exit_filler,
-                           ask_filler])
-        # could use this to color input when word match?
-        #urwid.connect_signal(ask_text, 'change', goto_room_or_exit)
-        loop = urwid.MainLoop(pile, palette, unhandled_input=goto_room_or_exit).run()
+        # change the current room to choice
+        # TODO: this should probably be a method of adventure,
+        # such as getitem
+        self.adventure.current_room = self.adventure.rooms[choice]
+        self.make_room()
 
+    def run(self):
+        listbox_menu = self.menu()
+        self.main = urwid.Padding(listbox_menu, left=2, right=2)
+        top = urwid.Overlay(self.main, urwid.SolidFill(u'*'),
+                            align='center', width=('relative', 60),
+                            valign='middle', height=('relative', 60),
+                            min_width=20, min_height=9)
+        urwid.MainLoop(top, palette=[('reversed', 'standout', '')]).run()
 
+# sorting out urwid gui mess
 adventure = Adventure.from_directory("rooms")
-adventure.play()
+RoomUI(adventure).run()
