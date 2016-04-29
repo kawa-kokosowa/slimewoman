@@ -1,6 +1,6 @@
-# Slime Woman
+# Slimewoman Text Adventure Engine
 
-A day in the life of a slime woman.
+![slimewoman in action](https://github.com/lillian-gardenia-seabreeze/slimewoman/blob/master/demo.gif)
 
 Flexible text adventure system:
 
