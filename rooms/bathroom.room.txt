@@ -1,4 +1,5 @@
 LINK_ID: bathroom
 TITLE: bathroom
 EXITS: first_room,down_drain
+INVENTORY: 
 This is your bathroom. Your bathtub's drain seems to be glowing.
