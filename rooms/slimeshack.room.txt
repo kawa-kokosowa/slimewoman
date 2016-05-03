@@ -1,6 +1,0 @@
-LINK_ID: first_room
-TITLE: Slime Shack
-EXITS: bathroom[!LOCKED!]
-INVENTORY: key
-You're at home, oh boy. It's just one big room,
-besides the bathroom. It's nice and cozy, though!

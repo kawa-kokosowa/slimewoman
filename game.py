@@ -1,6 +1,8 @@
-# TODO: roomscript
 import glob
 import urwid
+import textwrap
+
+import xml.etree.ElementTree as ET
 
 
 class InventoryItem(object):
@@ -163,25 +165,43 @@ class Room(object):
 
     @classmethod
     def from_string(cls, room_string):
-        """RoomScript"""
+        """RoomXML
+        
+        """
 
-        room_file_contents = room_string.split('\n')
-        link_id = cls.validate_and_clean("link_id", room_file_contents[0]).lower()
-        title = cls.validate_and_clean("title", room_file_contents[1])
+        root = ET.fromstring(room_string)  # <room ... />
+        link_id = root.attrib["link_id"]
+        title = root.find(".//title").text.strip()
 
-        # Exits are a little bit more complicated...
-        exits = cls.parse_exit_rules(room_file_contents[2])
+        description_text = root.find(".//description").text.strip()
+        description = textwrap.dedent(description_text)
 
-        # the room's items/inventory
-        inventory = cls.parse_inventory_rules(room_file_contents[3])
+        # exits
+        exits_root = root.find(".//exits")
+        exits = []
 
-        # finally the description and make room
-        description = '\n'.join(room_file_contents[4:]).strip()
+        for exit in exits_root.findall(".//exit"):
+            door_is_locked = "locked" in exit.attrib
+            door_link_id = exit.attrib["link_id"]
+            door = Door(link_id=door_link_id,
+                        needs_key=door_is_locked)
+            exits.append(door)
+
+        # inventory (optional)
+        inventory_root = root.find(".//inventory")
+        inventory = Inventory()
+
+        if inventory_root:
+
+            for item in inventory_root.findall(".//item"):
+                item_to_add = {"key": Key}[item.attrib["type"]]
+                inventory.append(item_to_add())
+
         return cls(link_id, title, exits, description, inventory=inventory)
 
 
 class Adventure(object):
-    ROOM_NAME_PATTERN = "*.room.txt"
+    ROOM_NAME_PATTERN = "*.rxml"
 
     def __init__(self, rooms):
         self.rooms = rooms

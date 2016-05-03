@@ -1,0 +1,10 @@
+<room link_id="bathroom">
+  <title>Slime Bathroom</title>
+  <exits>
+    <exit link_id="first_room" />
+  </exits>
+  <description>
+    Your bathroom.
+  </description>
+</room>
+
