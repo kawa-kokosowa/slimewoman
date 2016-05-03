@@ -193,7 +193,7 @@ class Room(object):
 
 
 class Adventure(object):
-    ROOM_NAME_PATTERN = "*.rxml"
+    ROOM_NAME_PATTERN = "*.xml"
 
     def __init__(self, rooms):
         self.rooms = rooms
