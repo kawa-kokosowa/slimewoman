@@ -3,7 +3,16 @@ import glob
 import urwid
 
 
-class Key(object):
+class InventoryItem(object):
+    """
+
+    Attributes:
+        name (str): --
+
+    """
+
+
+class Key(InventoryItem):
     """A key to any door usable once!
 
     """
@@ -25,25 +34,38 @@ class Door(object):
 
 
 class Inventory(list):
+    """List of InventoryItems, has
+    methods to handle items by name.
+
+    """
 
     def iter_items_matching_name(self, name):
-        """Don't use this, use the wrapper!"""
+        """Yield the index of the item and
+        the item itself whose name matches
+        the supplied name.
+
+        Arguments:
+            name (str): Value to look for
+                in inventory item's name
+                attribute.
+
+        Yields:
+            tuple(int, InventoryItem): --
+
+        """
 
         for i, item in enumerate(self):
 
             if item.name.lower() == name.lower():
                 yield i, item
 
-    def iter_matched_items(self, func):
-
-        def wrapped_func(name):
-
-            for i, item in self.iter_items_matching_name(name):
-                yield func(i, item)
-
-        return wrapped_func
-
     def get_first_item_matching_name(self, name):
+        """
+
+        Returns
+            InventoryItem|None:
+
+        """
 
         for i, item in self.iter_items_matching_name(name):
             return item
@@ -51,6 +73,12 @@ class Inventory(list):
         return None
 
     def has_item_of_name(self, name):
+        """
+
+        Returns:
+            bool: --
+
+        """
 
         for i, item in self.iter_items_matching_name(name):
             return True
@@ -58,6 +86,12 @@ class Inventory(list):
         return False
 
     def remove_item_of_name(self, name):
+        """
+
+        Returns:
+            None
+
+        """
 
         for i, item in self.iter_items_matching_name(name):
             del self[i]
@@ -96,15 +130,8 @@ class Room(object):
         return row_without_name.strip()
     
     @classmethod
-    def from_string(cls, room_string):
-        """RoomScript"""
-
-        room_file_contents = room_string.split('\n')
-        link_id = cls.validate_and_clean("link_id", room_file_contents[0]).lower()
-        title = cls.validate_and_clean("title", room_file_contents[1])
-
-        # Exits are a little bit more complicated...
-        exit_rules = cls.validate_and_clean("exits", room_file_contents[2]).split(",")
+    def parse_exit_rules(cls, string_of_exit_rules):
+        exit_rules = cls.validate_and_clean("exits", string_of_exit_rules).split(",")
         exits = []
 
         for rule in exit_rules:
@@ -119,8 +146,11 @@ class Room(object):
             door = Door(link_id=link_name, needs_key=door_is_locked)
             exits.append(door)
 
-        # the room's items/inventory
-        inventory_rules = cls.validate_and_clean("inventory", room_file_contents[3]).split(",")
+        return exits
+
+    @classmethod
+    def parse_inventory_rules(cls, string_of_inventory_rules):
+        inventory_rules = cls.validate_and_clean("inventory", string_of_inventory_rules).split(",")
         inventory = Inventory()
 
         for rule in inventory_rules:
@@ -128,6 +158,22 @@ class Room(object):
             if rule:
                 item_to_add = {"key": Key}[rule]
                 inventory.append(item_to_add())
+
+        return inventory
+
+    @classmethod
+    def from_string(cls, room_string):
+        """RoomScript"""
+
+        room_file_contents = room_string.split('\n')
+        link_id = cls.validate_and_clean("link_id", room_file_contents[0]).lower()
+        title = cls.validate_and_clean("title", room_file_contents[1])
+
+        # Exits are a little bit more complicated...
+        exits = cls.parse_exit_rules(room_file_contents[2])
+
+        # the room's items/inventory
+        inventory = cls.parse_inventory_rules(room_file_contents[3])
 
         # finally the description and make room
         description = '\n'.join(room_file_contents[4:]).strip()
@@ -202,11 +248,13 @@ class RoomUI(object):
 
     def make_room(self):
         """GUI"""
+
         listbox_menu = self.menu()
         self.main.original_widget = listbox_menu
 
     def list_inventory(self):
         """asdf"""
+
         self.main.original_widget = new_thing
 
     def item_chosen(self, button, choice):
