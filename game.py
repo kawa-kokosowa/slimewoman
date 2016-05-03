@@ -6,10 +6,14 @@ import xml.etree.ElementTree as ET
 
 
 class InventoryItem(object):
-    """
+    """Object which can be
+    in a room or player's
+    inventory.
 
     Attributes:
-        name (str): --
+        name (str): The generic
+            item name/type, e.g.,
+            key.
 
     """
 
@@ -24,11 +28,24 @@ class Key(InventoryItem):
 
 
 class Door(object):
+    """Each room has exits, where
+    a door links to another room.
+
+    Attributes:
+        link_id (str): Room this door
+            links to by link_id.
+        needs_key (bool): If true, the
+            player must use a key in
+            order to open this door
+            and go to the linked room.
+
+    """
 
     def __init__(self, link_id, needs_key=False):
         self.link_id = link_id
         self.needs_key = needs_key
 
+    # FIXME: deprecate this
     @property
     def name(self):
 
@@ -109,6 +126,20 @@ class Player(object):
 class Room(object):
 
     def __init__(self, link_id, title, exits, description, inventory=None):
+        """
+
+        Arguments:
+            link_id (str): The ID used by other rooms
+                to refer to this room/link to this
+                room.
+            title (str): Nice name of this room, display
+                at the top of the room.
+            exits (list[Door]): --
+            description (str): --
+            inventory (ItemInventory): --
+
+        """
+
         self.link_id = link_id
         self.title = title
         self.exits = exits
@@ -123,45 +154,6 @@ class Room(object):
                 player.inventory.append(item)
                 del self.inventory[inventory_index]
                 return item
-
-    @staticmethod
-    def validate_and_clean(expected_row_name, unsafe_row):
-        expected_row_name_with_syntax = expected_row_name.upper() + ": "
-        assert unsafe_row.startswith(expected_row_name_with_syntax), (expected_row_name, unsafe_row)
-        row_without_name = unsafe_row.replace(expected_row_name_with_syntax, " ", 1) 
-        return row_without_name.strip()
-    
-    @classmethod
-    def parse_exit_rules(cls, string_of_exit_rules):
-        exit_rules = cls.validate_and_clean("exits", string_of_exit_rules).split(",")
-        exits = []
-
-        for rule in exit_rules:
-
-            if "[!LOCKED!]" in rule:
-                door_is_locked = True
-                link_name = rule.replace("[!LOCKED!]", "")
-            else:
-                door_is_locked = False
-                link_name = rule
-
-            door = Door(link_id=link_name, needs_key=door_is_locked)
-            exits.append(door)
-
-        return exits
-
-    @classmethod
-    def parse_inventory_rules(cls, string_of_inventory_rules):
-        inventory_rules = cls.validate_and_clean("inventory", string_of_inventory_rules).split(",")
-        inventory = Inventory()
-
-        for rule in inventory_rules:
-
-            if rule:
-                item_to_add = {"key": Key}[rule]
-                inventory.append(item_to_add())
-
-        return inventory
 
     @classmethod
     def from_string(cls, room_string):
