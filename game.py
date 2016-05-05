@@ -288,6 +288,7 @@ class RoomUI(object):
                     if self.adventure.player.inventory.has_item_of_name('key'):
                         door.needs_key = False
                         self.adventure.player.inventory.remove_item_of_name('key')
+                        continue
                     else:
                         continue
 
