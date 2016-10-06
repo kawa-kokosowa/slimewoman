@@ -1,0 +1,16 @@
+<room id="room a">
+  <description>
+    Lalfskjlaksjdf slakdjf awejifow ajeoifawej fasdlkjflsakdjflsadjfljsadf
+    alskjdflaskjfdlkajsdflkjasldfkjalsdkjflksajdfljksdflkjsdlfkjsdlkfjsldkjflkjsadfkl
+    alsdfkjlaskjflskajdfieojfeoijfewubfeiubfiweaubfiuwebfuiwebfuhewifhweihfiaewhf
+  </description>
+  <characters>
+    <character id="bad guy npc" />
+  </characters>
+  <doors>
+    <door destination="room b" />
+  </doors>
+  <items>
+    <item id="skeleton key" />
+  </items>
+</room>
