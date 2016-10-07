@@ -10,4 +10,4 @@ from slimewoman import database
 class BaseTest(unittest.TestCase):
 
     def setUp(self):
-        self.session = database.connect()
+        self.session = database.connect(init_db=True)

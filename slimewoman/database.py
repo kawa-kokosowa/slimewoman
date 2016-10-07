@@ -1,9 +1,14 @@
+from __future__ import absolute_import
+
+import glob
+import os
+
 import sqlalchemy
 
 DATABASE_URI = 'sqlite://'
 
 
-def connect():
+def connect(init_db=False):
     from slimewoman import models
     engine = sqlalchemy.create_engine(DATABASE_URI)
     db_session = sqlalchemy.orm.scoped_session(
@@ -14,15 +19,14 @@ def connect():
         )
     )
     models.Base.query = db_session.query_property()
+
+    if init_db:
+        models.Base.metadata.create_all(bind=engine)
+
     return db_session
 
 
-def init_db():
-    from slimewoman import models
-    Base.metadata.create_all(bind=engine)
-
-
-def create_from_dir(directory):
+def create_from_dir(db_session, directory):
     from slimewoman import models
 
     for file_path in glob.glob(os.path.join(directory, "*.xml")):
@@ -30,4 +34,6 @@ def create_from_dir(directory):
         with open(file_path) as f:
             new_room = models.Room.from_xml_string(f.read())
 
-        yield new_room
+        db_session.add(new_room)
+
+    db_session.commit()

@@ -1,5 +1,7 @@
 """Test models.py
 
+I also test database in here.
+
 """
 
 from __future__ import absolute_import
@@ -8,6 +10,10 @@ import sqlalchemy
 
 from tests import common
 from slimewoman import models, database
+
+
+class TestItems(common.BaseTest):
+    pass
 
 
 class TestDoors(common.BaseTest):
@@ -21,15 +27,37 @@ class TestDoors(common.BaseTest):
     """
 
     def test_requires_item(self):
-        # First create the required item and create a door with it
-        required_item = models.Item(id="skeleton key")
+        # First try to create a door which has two required items
+        staff_of_rain = models.Item(id="Staff of Rain")
+        sunstone = models.Item(id="Sunstone")
+        required_items = [staff_of_rain, sunstone]
         door = models.Door(
             source_room_id="some room",
             destination_room_id="some OTHER room",
-            require_take_items=required_item,
+            require_take_items=required_items,
         )
         self.session.add(door)
         self.session.commit()
+
+        # Get the door we created
+        hopefully_some_door = models.Door.query.filter_by(
+            source_room_id="some room",
+        )[0]
+        assert hopefully_some_door is door
+        assert hopefully_some_door.destination_room_id == "some OTHER room"
+        assert hopefully_some_door.require_take_items == required_items
+
+        # try deleting the item
+        self.session.delete(staff_of_rain)
+        self.session.commit()
+        
+        assert hopefully_some_door.require_take_items == [sunstone]
+
+        # try deleting the door
+        self.session.delete(door)
+        self.session.commit()
+
+        assert models.Item.query.all() == [sunstone]
 
 
 class TestRooms(common.BaseTest):
@@ -120,16 +148,19 @@ class TestRooms(common.BaseTest):
 
         # delete Room A
         self.session.delete(room_a)
+        self.session.commit()
         results = models.Door.query.all()
         assert [r for r in results] == [room_b_door_west, room_b_door_south, room_c_door_north]
 
         # delete Room B
         self.session.delete(room_b)
+        self.session.commit()
         results = models.Door.query.all()
         assert [r for r in results] == [room_c_door_north]
 
         # delete Room C
         self.session.delete(room_c)
+        self.session.commit()
         results = models.Door.query.all()
         assert [r for r in results] == []
 
@@ -143,8 +174,10 @@ class TestRooms(common.BaseTest):
         assert room.doors_in_room[0].destination_room_id == "room b"
 
 
-def test_create_from_dir():
-    database.create_from_dir("sample_project")
+class TestDatabase(common.BaseTest):
+
+    def test_create_from_dir(self):
+        database.create_from_dir(self.session, "sample_project")
 
 
 if __name__ == '__main__':
