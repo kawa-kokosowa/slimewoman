@@ -11,10 +11,25 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
-
 Base = declarative_base()
 
 
+# setup tables
+require_take_items_table = Table(
+    'require_take_items',
+    Base.metadata,
+    Column('door_id', Integer, ForeignKey('doors.id')),
+    Column('item_id', String, ForeignKey('items.id')),
+)
+
+
+class Item(Base):
+    __tablename__ = 'items'
+
+    id = Column(String, primary_key=True)
+
+
+# NOTE: does deleting a door auto remove it from room
 class Door(Base):
     """One-directional portal from one room to another.
 
@@ -22,8 +37,10 @@ class Door(Base):
         id: Regular autoincrement row ID.
         source_room_id: This door is accessible only through this room.
         destination_room_id: Using this door will put you in this room.
+        requires_item_id: The item this door requires to bring player
+            to destination_room_id.
 
-    Note:
+    Notes:
         Doors are one-directional, only accessible from source room.
         This is intentional to increase flexibility.
 
@@ -32,12 +49,15 @@ class Door(Base):
     __tablename__ = 'doors'
 
     id = Column(Integer, primary_key=True)
-    # TODO: requires_item?
     source_room_id = Column(
         String,
         ForeignKey('rooms.id'),
     )
     destination_room_id = Column(String, ForeignKey('rooms.id'))
+    require_take_items = relationship(
+        'Item',
+        secondary=require_take_items_table,
+    )
 
     def __repr__(self):
         return (

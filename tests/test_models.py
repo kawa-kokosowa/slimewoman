@@ -7,7 +7,29 @@ from __future__ import absolute_import
 import sqlalchemy
 
 from tests import common
-from slimewoman import models
+from slimewoman import models, database
+
+
+class TestDoors(common.BaseTest):
+    """Ensure the following about doors:
+
+    * A door can be created with a required item
+    * Deleting required_item from door does not delete said item from
+      the database.
+    * Deleting an item removes it from the door's required_items
+
+    """
+
+    def test_requires_item(self):
+        # First create the required item and create a door with it
+        required_item = models.Item(id="skeleton key")
+        door = models.Door(
+            source_room_id="some room",
+            destination_room_id="some OTHER room",
+            require_take_items=required_item,
+        )
+        self.session.add(door)
+        self.session.commit()
 
 
 class TestRooms(common.BaseTest):
@@ -74,19 +96,19 @@ class TestRooms(common.BaseTest):
         # now try to test by querying
 
         # Room A's Doors
-        results = self.session.query(models.Door).filter_by(source_room_id=room_a.id)
+        results = models.Door.query.filter_by(source_room_id=room_a.id)
         assert [r for r in results] == [room_a_door_east]
 
         # Room B's Doors
-        results = self.session.query(models.Door).filter_by(source_room_id=room_b.id)
+        results = models.Door.query.filter_by(source_room_id=room_b.id)
         assert [r for r in results] == [room_b_door_west, room_b_door_south]
 
         # Room C's Doors
-        results = self.session.query(models.Door).filter_by(source_room_id=room_c.id)
+        results = models.Door.query.filter_by(source_room_id=room_c.id)
         assert [r for r in results] == [room_c_door_north]
 
         # Ensure all the doors are there...
-        results = self.session.query(models.Door).all()
+        results = models.Door.query.all()
         assert results == [
             room_a_door_east,
             room_b_door_west,
@@ -98,17 +120,17 @@ class TestRooms(common.BaseTest):
 
         # delete Room A
         self.session.delete(room_a)
-        results = self.session.query(models.Door).all()
+        results = models.Door.query.all()
         assert [r for r in results] == [room_b_door_west, room_b_door_south, room_c_door_north]
 
         # delete Room B
         self.session.delete(room_b)
-        results = self.session.query(models.Door).all()
+        results = models.Door.query.all()
         assert [r for r in results] == [room_c_door_north]
 
         # delete Room C
         self.session.delete(room_c)
-        results = self.session.query(models.Door).all()
+        results = models.Door.query.all()
         assert [r for r in results] == []
 
     def test_from_xml_string(self):
@@ -119,6 +141,10 @@ class TestRooms(common.BaseTest):
         assert len(room.doors_in_room) == 1
         assert room.doors_in_room[0].source_room_id == "room a"
         assert room.doors_in_room[0].destination_room_id == "room b"
+
+
+def test_create_from_dir():
+    database.create_from_dir("sample_project")
 
 
 if __name__ == '__main__':
