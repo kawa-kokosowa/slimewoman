@@ -28,11 +28,16 @@ class TestDoors(common.BaseTest):
 
     def test_requires_item(self):
         # First try to create a door which has two required items
-        staff_of_rain = models.Item(id="Staff of Rain")
-        sunstone = models.Item(id="Sunstone")
+        staff_of_rain = models.Item(
+            id="Staff of Rain",
+            find_phrase="open lid",
+        )
+        sunstone = models.Item(
+            id="Sunstone",
+            find_phrase="move rock",
+        )
         required_items = [staff_of_rain, sunstone]
         door = models.Door(
-            source_room_id="some room",
             destination_room_id="some OTHER room",
             require_take_items=required_items,
         )
@@ -41,8 +46,8 @@ class TestDoors(common.BaseTest):
 
         # Get the door we created
         hopefully_some_door = models.Door.query.filter_by(
-            source_room_id="some room",
-        )[0]
+            destination_room_id="some OTHER room",
+        ).first()
         assert hopefully_some_door is door
         assert hopefully_some_door.destination_room_id == "some OTHER room"
         assert hopefully_some_door.require_take_items == required_items
@@ -83,7 +88,6 @@ class TestRooms(common.BaseTest):
 
         # Room A
         room_a_door_east = models.Door(
-            source_room_id="Room A",
             destination_room_id="Room B",
         )
         room_a = models.Room(
@@ -94,11 +98,9 @@ class TestRooms(common.BaseTest):
 
         # Room B
         room_b_door_west = models.Door(
-            source_room_id="Room B",
             destination_room_id="Room A",
         )
         room_b_door_south = models.Door(
-            source_room_id="Room B",
             destination_room_id="Room C",
         )
         room_b = models.Room(
@@ -109,7 +111,6 @@ class TestRooms(common.BaseTest):
 
         # Room C
         room_c_door_north = models.Door(
-            source_room_id="Room C",
             destination_room_id="Room B",
         )
         room_c = models.Room(
@@ -130,6 +131,10 @@ class TestRooms(common.BaseTest):
         # Room B's Doors
         results = models.Door.query.filter_by(source_room_id=room_b.id)
         assert [r for r in results] == [room_b_door_west, room_b_door_south]
+
+        # ... query the DB to get room b's doors
+        room_b_from_db = models.Room.query.get('Room B')
+        assert room_b_from_db.doors_in_room == [room_b_door_west, room_b_door_south]
 
         # Room C's Doors
         results = models.Door.query.filter_by(source_room_id=room_c.id)
@@ -174,10 +179,63 @@ class TestRooms(common.BaseTest):
         assert room.doors_in_room[0].destination_room_id == "room b"
 
 
+'''
+class TestGameState(common.BaseTest):
+    """Ensure the following about the GameState model:
+
+    * You can create its inventory and set its current room on creation
+    * Deleting items and the current room does
+      not delete these items from the db
+    * Deleting items and rooms removes from game state
+
+    """
+
+    def test_everything(self):
+        # test inventory
+        # create three items
+        item_one = models.Item(
+            id="Item One",
+            find_phrase="pickup item one",
+        )
+        self.session.add(item_one)
+        item_two = models.Item(
+            id="Item Two",
+            find_phrase='lolol',
+        )
+        self.session.add(item_two)
+        item_three = models.Item(
+            id="Item Three",
+            find_phrase='oh gee',
+        )
+        self.session.add(item_three)
+        self.session.commit()
+
+        # test current room
+        # create a room
+        red_room = models.Room(id='Red Room')
+        self.session.add(red_room)
+        blue_room = models.Room(id='Blue Room')
+        self.session.add(blue_room)
+        self.session.commit()
+
+        # finally create the game state
+        gamestate = models.GameState(
+            current_room_id='Red Room',
+            inventory=[item_one, item_two, item_three],
+        )
+        self.session.add(gamestate)
+        self.session.commit()
+        gamestate_from_db = models.GameState.query.get(1)
+        assert gamestate_from_db == gamestate
+        assert gamestate_from_db.current_room == red_room
+        assert gamestate_from_db.inventory == [item_one, item_two, item_three]
+
+
 class TestDatabase(common.BaseTest):
 
     def test_create_from_dir(self):
         database.create_from_dir(self.session, "sample_project")
+'''
 
 
 if __name__ == '__main__':

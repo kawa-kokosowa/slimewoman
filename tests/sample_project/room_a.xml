@@ -1,16 +1,14 @@
-<room id="room a">
+<room id="Room A" starting="true">
   <description>
-    Lalfskjlaksjdf slakdjf awejifow ajeoifawej fasdlkjflsakdjflsadjfljsadf
-    alskjdflaskjfdlkajsdflkjasldfkjalsdkjflksajdfljksdflkjsdlfkjsdlkfjsldkjflkjsadfkl
-    alsdfkjlaskjflskajdfieojfeoijfewubfeiubfiweaubfiuwebfuiwebfuhewifhweihfiaewhf
+    There's a door to the East and something glittering on the floor.
   </description>
   <characters>
     <character id="bad guy npc" />
   </characters>
   <doors>
-    <door destination="room b" />
+    <door destination="Room B" />
   </doors>
   <items>
-    <item id="skeleton key" />
+    <item id="skeleton key" find_phrase="get glittery" />
   </items>
 </room>

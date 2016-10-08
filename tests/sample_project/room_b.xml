@@ -1,0 +1,9 @@
+<room id="Room B">
+  <description>
+    There's a door to the West and South.
+  </description>
+  <doors>
+    <door destination="Room A" />
+    <door destination="Room C" require_take_items="skeleton key" />
+  </doors>
+</room>

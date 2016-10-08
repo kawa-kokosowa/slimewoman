@@ -8,13 +8,13 @@ import sqlalchemy
 DATABASE_URI = 'sqlite://'
 
 
-def connect(init_db=False):
+def connect(init_db=False, autocommit=False, autoflush=False):
     from slimewoman import models
     engine = sqlalchemy.create_engine(DATABASE_URI)
     db_session = sqlalchemy.orm.scoped_session(
         sqlalchemy.orm.sessionmaker(
-            autocommit=False,
-            autoflush=False,
+            autocommit=autocommit,
+            autoflush=autoflush,
             bind=engine
         )
     )
