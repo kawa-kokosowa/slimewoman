@@ -64,6 +64,8 @@ class StateClientUi(object):
         button = urwid.Button("QUIT")
         urwid.connect_signal(button, 'click', self.exit_program)
         body.append(urwid.AttrMap(button, None, focus_map='reversed'))
+        # add inventory at bottom
+        body.append(urwid.Text('Inventory: ' + ', '.join([item.id for item in self.gamestate.inventory])))
         return urwid.ListBox(urwid.SimpleFocusListWalker(body))
 
     @staticmethod
