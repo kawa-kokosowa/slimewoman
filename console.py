@@ -45,8 +45,8 @@ class StateClientUi(object):
         for door in doors_in_current_room:
             button_name = 'Door to %s' % door.destination_room_id
 
-            if door.require_take_items:
-                button_name += " [NEEDS: %s]" % ', '.join([item.id for item in door.require_take_items])
+            if door.require_items:
+                button_name += " [NEEDS: %s]" % ', '.join([item.id for item in door.require_items])
 
             button = urwid.Button(button_name)
             urwid.connect_signal(button, 'click', self.open_door, door)
@@ -82,24 +82,20 @@ class StateClientUi(object):
         self.main.original_widget = new_thing
 
     def open_door(self, button, door):
+        """Urwid button callback"""
 
         # if this door takes items, make sure the player has all the
         # items and that we've taken them away from player inventory
-        if door.require_take_items:
+        if door.require_items:
             # gather a list of items to remove in case player has
             # all of them in their inventory
             items_to_remove = []
-            for item_to_remove in door.require_take_items:
-                # if the item we need is in player's inventory, 
-                if item_to_remove in self.gamestate.inventory:
-                    items_to_remove.append(item_to_remove)
-                else:
+            for item_required in door.require_items:
+                if not item_required in self.gamestate.inventory:
                     break
             # else if break never occurred, that means player had every
             # required item and we can change the room
             else:
-                raise Exception('has items to open door')
-                self.gamestate.inventory.remove(*items_to_remove)
                 self.gamestate.current_room_id = door.destination_room_id
                 self.session.commit()
         else:
@@ -109,11 +105,14 @@ class StateClientUi(object):
 
         self.make_room()
 
-    def take_item_from_current_room(self, item):
+    def take_item_from_current_room(self, button, item):
+        """Urwid button callback"""
+
         current_room = self.gamestate.current_room
         current_room.items_in_room.remove(item)
-        self.gamestate.inventory.add(item)
+        self.gamestate.inventory.append(item)
         self.session.commit()
+        self.make_room()
 
     def run(self):
         listbox_menu = self.menu()

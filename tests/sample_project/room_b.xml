@@ -4,6 +4,6 @@
   </description>
   <doors>
     <door destination="Room A" />
-    <door destination="Room C" require_take_items="skeleton key" />
+    <door destination="Room C" require_items="skeleton key" />
   </doors>
 </room>

@@ -1,5 +1,3 @@
-import xml.etree.ElementTree
-
 from sqlalchemy import (
     Boolean,
     Column,
@@ -15,8 +13,8 @@ Base = declarative_base()
 
 
 # setup tables
-require_take_items_table = Table(
-    'require_take_items',
+require_items_table = Table(
+    'require_items',
     Base.metadata,
     Column('door_id', Integer, ForeignKey('doors.id')),
     Column('item_id', String, ForeignKey('items.id')),
@@ -74,9 +72,9 @@ class Door(Base):
         ForeignKey('rooms.id'),
     )
     destination_room_id = Column(String, ForeignKey('rooms.id'), nullable=False)
-    require_take_items = relationship(
+    require_items = relationship(
         'Item',
-        secondary=require_take_items_table,
+        secondary=require_items_table,
         cascade='all,delete',
     )
 
@@ -118,49 +116,6 @@ class Room(Base):
 
     def __repr__(self):
         return '<Room "%s" (%d doors)>' % (self.name, len(self.doors))
-
-    @classmethod
-    def from_xml_string(cls, xml_string):
-        root = xml.etree.ElementTree.fromstring(xml_string)
-        room_id = root.attrib['id']
-
-        # build the items_in_room
-        items_in_room = []
-        for item_tag in root.iter('item'):
-            item = Item(
-                id=item_tag.attrib['id'],
-                find_phrase=item_tag.attrib['find_phrase'],
-            )
-            items_in_room.append(item)
-
-        # build the doors
-        doors = []
-        for door_tag in root.iter('door'):
-
-            # first get all items
-            items = []
-            if 'require_take_items' in door_tag.attrib:
-                for item_id in door_tag.attrib['require_take_items'].split(', '):
-                    new_item = Item(id=item_id)
-                    items.append(new_item)
-
-            # create the door
-            door = Door(
-                source_room_id=room_id,
-                destination_room_id=door_tag.attrib['destination'],
-                require_take_items=items,
-            )
-            doors.append(door)
-
-        # finally, create the room with its doors and items
-        room = cls(
-            id=room_id,
-            doors_in_room=doors,
-            starting='starting' in root.attrib,
-            description=root.find('description').text,
-            items_in_room=items_in_room,
-        )
-        return room
 
 
 class GameState(Base):

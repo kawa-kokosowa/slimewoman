@@ -1,0 +1,8 @@
+<room id="Room C">
+  <description>
+    There's a door to the North.
+  </description>
+  <doors>
+    <door destination="Room B" />
+  </doors>
+</room>
